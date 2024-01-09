@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "worklib.h"
+#include "C:\Users\Admin\Desktop\Developer\ws-apc-remake\after\include\worklib.h"
 
 int main(void)
 {
@@ -25,7 +25,7 @@ int main(void)
         switch (option)
         {
             case 1:
-                newCompany();
+                newCompany(companyList);
                 break; 
             case 2:
                 newConsumer(consumersList);

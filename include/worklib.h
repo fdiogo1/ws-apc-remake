@@ -29,11 +29,11 @@ typedef struct _date DATE;
 typedef struct _list List;
 typedef struct _node Node;
 
-List* createList(const char*);
+List *createList(const char *);
 
-void loadFromArchive(List*, char*);
-void updateArchive(const List*, const List*);
-void printList(const List*, char*);
+void loadFromArchive(List *, char *);
+void updateArchive(const List *, const List *);
+void printList(const List *, char *);
 void destroyList(List **);
 
 void printMenu();
@@ -45,11 +45,12 @@ void viewConsumer();
 void deleteCompany();
 void deleteConsumer();
 void cleanScreen();
-bool checkDate (const char *);
-bool checkCPF (const char *);
+int compareStrings(char *, char*);
+bool checkDate(const char *);
+bool checkCPF(const char *);
 bool checkCNPJ(const char *);
-bool checkConsumer(char *, const List*);
-bool checkCompany(char *, const List*);
+bool checkConsumer(char *, const List *);
+bool checkCompany(char *, const List *);
 
 /*****************************************/
 #endif

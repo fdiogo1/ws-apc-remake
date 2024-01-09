@@ -14,7 +14,8 @@ all: libed myapps
 libed: $(OBJ)/worklib.o 
 	ar -rcs $(LIB)/libed.a $(OBJ)/*.*
 
-myapps: $(BIN)/app
+myapps: $(BIN)/app \
+	$(BIN)/tests
 
 run: 
 	$(BIN)/app.exe
