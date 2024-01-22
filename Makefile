@@ -6,7 +6,6 @@ OBJ = ./obj
 SRC = ./src
 FLAGS = -O3 -Wall
 LIBS = -led -L $(LIB)
-
 DIR = C:\Users\Admin\Desktop\Developer\ws-apc-remake\after
 
 all: libed myapps

@@ -25,7 +25,6 @@
 typedef struct _consumer CONSUMER;
 typedef struct _company COMPANY;
 typedef struct _contract CONTRACT;
-typedef struct _date DATE;
 typedef struct _list List;
 typedef struct _node Node;
 

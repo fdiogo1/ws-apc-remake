@@ -12,13 +12,6 @@ struct _consumer
     char cpf[CPF_SIZE];
 };
 
-struct _date
-{
-    int day;
-    int month;
-    int year;
-};
-
 struct _company
 {
     char name[NAME_SIZE];
