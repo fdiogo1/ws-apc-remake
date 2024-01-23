@@ -4,8 +4,6 @@
 /*****************************************/
 #include <stdbool.h>
 
-
-
 #define CPF_SIZE 12
 #define CNPJ_SIZE 14
 #define NAME_SIZE 200
@@ -54,8 +52,9 @@ bool checkCNPJ(const char *);
 bool checkConsumer(char *, const List *);
 bool checkCompany(char *, const List *);
 
-CONSUMER* getConsumer(char *cpf, const List *list);
-COMPANY* getCompany(char *cnpj, const List *list);
+CONSUMER* getConsumer(char *, const List *);
+COMPANY* getCompany(char *, const List *);
 
 /*****************************************/
+
 #endif

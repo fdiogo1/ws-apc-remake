@@ -22,8 +22,8 @@ struct _company
 
 struct _contract
 {
-    CONSUMER consumer;
-    COMPANY company;
+    CONSUMER *consumer;
+    COMPANY *company;
     float power;
     char date[DATE_SIZE];
 };
@@ -75,22 +75,25 @@ int compareStrings(char *text1, char *text2)
 
 bool checkDate(const char *date)
 {
-    if (strlen(date) != 10) return false;
-    
+    if (strlen(date) != 10)
+        return false;
+
     char dayString[3] = {date[0], date[1]};
     char monthString[3] = {date[3], date[4]};
     char yearString[5] = {date[6], date[7], date[8], date[9]};
-
 
     int day = atoi(dayString);
     int month = atoi(monthString);
     int year = atoi(yearString);
 
-    if (day < 1 || day > 31) return false;
+    if (day < 1 || day > 31)
+        return false;
 
-    if (month < 1 || month > 12) return false;
+    if (month < 1 || month > 12)
+        return false;
 
-    if (year < 1900 || year > 2100) return false;
+    if (year < 1900 || year > 2100)
+        return false;
 
     if (month == 2)
     {
@@ -147,7 +150,7 @@ Node *createConsumerNode(CONSUMER p)
 
 Node *createCompanyNode(COMPANY p)
 {
-    Node *new = (Node*) calloc(1, sizeof(Node));
+    Node *new = (Node *)calloc(1, sizeof(Node));
     new->companies = (COMPANY *)calloc(1, sizeof(COMPANY));
     strcpy(new->companies->name, p.name);
     strcpy(new->companies->cnpj, p.cnpj);
@@ -156,15 +159,15 @@ Node *createCompanyNode(COMPANY p)
     return new;
 }
 
-Node *createContractNode(CONTRACT p)
+Node *createContractNode(CONTRACT *p)
 {
-    Node *new = (Node*) calloc(1, sizeof(Node));
-    new->contracts = (CONTRACT*) calloc(1, sizeof(CONTRACT));
+    Node *new = (Node *)calloc(1, sizeof(Node));
+    new->contracts = (CONTRACT *)calloc(1, sizeof(CONTRACT));
 
-    strcpy(new->contracts->date, p.date);
-    new->contracts->company = p.company;
-    new->contracts->consumer = p.consumer;
-    new->contracts->power = p.power;
+    strcpy(new->contracts->date, p->date);
+    new->contracts->company = p->company;
+    new->contracts->consumer = p->consumer;
+    new->contracts->power = p->power;
 
     return new;
 }
@@ -201,15 +204,15 @@ void insertCompanyNode(List *list, COMPANY p)
     list->quantity++;
 }
 
-void insertContractNode(List *list, CONTRACT p)
+void insertContractNode(List *list, CONTRACT *p)
 {
     Node *newNode = createContractNode(p);
 
-    if(isEmpty(list)) 
+    if (isEmpty(list))
     {
         list->begin = list->end = newNode;
     }
-    else 
+    else
     {
         newNode->prev = list->end;
         list->end->next = newNode;
@@ -225,7 +228,7 @@ void loadFromArchive(List *list, char *type)
     {
         FILE *archive = fopen(ARCHIVE_CONSUMERS, "rt");
         CONSUMER read;
-        strcpy(read.name, "null");
+        strcpy(read.name, "");
 
         if (archive != NULL)
         {
@@ -233,11 +236,10 @@ void loadFromArchive(List *list, char *type)
             {
                 fscanf(archive, " %[^\n]s", read.name);
                 fscanf(archive, "%s", read.cpf);
-                if (!compareStrings(read.name, "null"))
+                if (!compareStrings(read.name, ""))
                     insertConsumerNode(list, read);
-                strcpy(read.name, "null");
+                strcpy(read.name, "");
             }
-
         }
         else
         {
@@ -260,13 +262,12 @@ void loadFromArchive(List *list, char *type)
             {
                 fscanf(archive, " %[^\n]s", read.name);
                 fscanf(archive, "%s\n", read.cnpj);
-                fscanf(archive, "%s\n", read.founded);
+                fscanf(archive, "%s", read.founded);
                 fscanf(archive, "%f", &read.potency);
                 if (!compareStrings(read.name, "null"))
                     insertCompanyNode(list, read);
                 strcpy(read.name, "null");
             }
-
         }
         else
         {
@@ -287,39 +288,102 @@ void loadFromArchive(List *list, char *type)
 void loadContracts(List *contracts, const List *consumers, const List *companies)
 {
     FILE *archive = fopen(ARCHIVE_CONTRACTS, "rt");
-    CONTRACT read;
 
-    COMPANY* readCompany;
-    CONSUMER* readConsumer;
+    char cnpj[CNPJ_SIZE];
+    char cpf[CPF_SIZE];
+    float power;
+    char date[DATE_SIZE];
+
+    CONTRACT *insert = (CONTRACT*) calloc(1, sizeof(CONTRACT));
+
+    COMPANY *p2 = NULL;
+    CONSUMER *p3 = NULL;
 
     if (archive != NULL)
     {
+        strcpy(cnpj, "");
         while (!feof(archive))
         {
-            fscanf(archive, "%s", read.company.cnpj);
-            fscanf(archive, "%f", &read.power);
-            fscanf(archive, "%s", read.consumer.cpf);
-            fscanf(archive, "%s", read.date);
+            fscanf(archive, "%s", cnpj);
+            fscanf(archive, "%f", &power);
+            fscanf(archive, "%s", cpf);
+            fscanf(archive, "%s", date);
 
-            readConsumer = getConsumer(read.consumer.cpf, consumers);
-            readCompany = getCompany(read.company.cnpj, companies);
+            p2 = getCompany(cnpj, companies);
+            p3 = getConsumer(cpf, consumers);
 
-            if (readConsumer != NULL && readCompany != NULL)
+            if (!compareStrings(cnpj, "") && p2 != NULL && p3 != NULL)
             {
-                strcpy(read.company.name, readCompany->name);
-                strcpy(read.company.founded, readCompany->founded);
-                read.company.potency = readCompany->potency;
-                strcpy(read.consumer.name, readConsumer->name);
-                insertContractNode(contracts, read);
+                insert->company = p2;
+                insert->consumer = p3;
+                insert->power = power;
+                strcpy(insert->date, date);
+                insertContractNode(contracts, insert);
             }
-
-            strcpy(read.company.cnpj, "null");
+            
+            strcpy(cnpj, "");
         }
     }
+
+    free(insert);
 
     fclose(archive);
     rename(ARCHIVE_CONTRACTS, BACKUP_ARCHIVE_CONTRACTS);
     remove(ARCHIVE_CONTRACTS);
+}
+
+void updateArchive(const List *consumerList, const List *companyList, const List *contractList)
+{
+    FILE *archive1 = fopen(ARCHIVE_CONSUMERS, "at");
+    FILE *archive2 = fopen(ARCHIVE_COMPANIES, "at");
+    FILE *archive3 = fopen(ARCHIVE_CONTRACTS, "at");
+
+    Node *aux1 = consumerList->begin;
+    Node *aux2 = companyList->begin;
+    Node *aux3 = contractList->begin;
+
+    if (!isEmpty(consumerList))
+    {
+        while (aux1 != NULL)
+        {
+            fprintf(archive1, "%s\n", aux1->consumers->name);
+            fprintf(archive1, "%s\n", aux1->consumers->cpf);
+            aux1 = aux1->next;
+        }
+    }
+
+    if (!isEmpty(companyList))
+    {
+        while (aux2 != NULL)
+        {
+            fprintf(archive2, "%s\n", aux2->companies->name);
+            fprintf(archive2, "%s\n", aux2->companies->cnpj);
+            fprintf(archive2, "%s\n", aux2->companies->founded);
+            fprintf(archive2, "%.2f\n", aux2->companies->potency);
+            aux2 = aux2->next;
+        }
+    }
+
+    if (!isEmpty(contractList))
+    {
+        while (aux3 != NULL)
+        {
+            fprintf(archive3, "%s\n", aux3->contracts->company->cnpj);
+            fprintf(archive3, "%.2f\n", aux3->contracts->power);
+            fprintf(archive3, "%s\n", aux3->contracts->consumer->cpf);
+            fprintf(archive3, "%s\n", aux3->contracts->date);
+            aux3 = aux3->next;
+        }
+    }
+
+    fclose(archive1);
+    remove(BACKUP_ARCHIVE_CONSUMERS);
+
+    fclose(archive2);
+    remove(BACKUP_ARCHIVE_COMPANIES);
+
+    fclose(archive3);
+    remove(BACKUP_ARCHIVE_CONTRACTS);
 }
 
 void printList(const List *list, char *type)
@@ -341,7 +405,7 @@ void printList(const List *list, char *type)
             }
         }
     }
-    else if (compareStrings(type, COMPANIES)) 
+    else if (compareStrings(type, COMPANIES))
     {
         if (isEmpty(list))
         {
@@ -363,13 +427,13 @@ void printList(const List *list, char *type)
         {
             puts("0 contracts found at archive 'contracts.txt'");
         }
-        else 
+        else
         {
             Node *p = list->begin;
 
             while (p != NULL)
             {
-                printf("Contracted company: %s; Potency: %.2f; Consumer: %s; Date: %s\n", p->contracts->company.name, p->contracts->power, p->contracts->consumer.name, p->contracts->date);
+                printf("Contracted company: %s; Potency: %.2f; Consumer: %s; Date: %s\n", p->contracts->company->name, p->contracts->power, p->contracts->consumer->name, p->contracts->date);
                 p = p->next;
             }
         }
@@ -496,7 +560,6 @@ void newCompany(List *list)
         printf("[!] Digite uma data valida. dd/mm/aaaa\n>> ");
         scanf("%s", u.founded);
     }
-    
 
     printf("[*] Digite a potencia estimada da usina, em MW: \n");
     scanf("%f", &u.potency);
@@ -522,7 +585,7 @@ void newCompany(List *list)
 
 void newContract(List *contracts, const List *consumers, const List *companies)
 {
-
+    printf("Soon.\n");
 }
 
 bool checkConsumer(char *cpf, const List *list)
@@ -538,7 +601,7 @@ bool checkConsumer(char *cpf, const List *list)
     return (p != NULL) ? true : false;
 }
 
-CONSUMER* getConsumer(char *cpf, const List *list)
+CONSUMER *getConsumer(char *cpf, const List *list)
 {
 
     Node *p = list->begin;
@@ -564,7 +627,7 @@ bool checkCompany(char *cnpj, const List *list)
     return (p != NULL) ? true : false;
 }
 
-COMPANY* getCompany(char *cnpj, const List *list)
+COMPANY *getCompany(char *cnpj, const List *list)
 {
 
     Node *p = list->begin;
@@ -617,9 +680,8 @@ bool checkCNPJ(const char *cnpj)
         for (int i = 0, j = 5; i <= 3 || j >= 2; i++, j--)
             soma = soma + ((cnpj[i] - 48) * j);
 
-
         for (int i = 4, j = 9; i <= 11 || j >= 2; i++, j--)
-            soma = soma + ((cnpj[i] - 48) * j); 
+            soma = soma + ((cnpj[i] - 48) * j);
 
         v1 = (soma % 11 < 2) ? '0' : (11 - soma % 11) + 48;
 
@@ -634,70 +696,10 @@ bool checkCNPJ(const char *cnpj)
         v2 = (soma % 11 < 2) ? '0' : (11 - soma % 11) + 48;
 
         return (v1 == cnpj[12] && v2 == cnpj[13]) ? true : false;
-
     }
     else
     {
         return false;
-    }
-}
-
-// Consumer, Company, Contract
-void updateArchive(const List *consumerList, const List *companyList, const List *contractList)
-{
-    if (!isEmpty(consumerList) && !isEmpty(companyList))
-    {
-        FILE *archive1 = fopen(ARCHIVE_CONSUMERS, "at");
-        Node *aux = consumerList->begin;
-
-        while (aux != NULL)
-        {
-            fprintf(archive1, "%s\n", aux->consumers->name);
-            fprintf(archive1, "%s\n", aux->consumers->cpf);
-            aux = aux->next;
-        }
-
-        fclose(archive1);
-        remove(BACKUP_ARCHIVE_CONSUMERS);
-
-        FILE *archive2 = fopen(ARCHIVE_COMPANIES, "at");
-        aux = companyList->begin;
-
-        while (aux != NULL)
-        {
-            fprintf(archive2, "%s\n", aux->companies->name);
-            fprintf(archive2, "%s\n", aux->companies->cnpj);
-            fprintf(archive2, "%s\n", aux->companies->founded);
-            fprintf(archive2, "%.2f\n", aux->companies->potency);
-            aux = aux->next;
-        }
-
-        fclose(archive2);
-        remove(BACKUP_ARCHIVE_COMPANIES);
-
-        FILE *archive3 = fopen(ARCHIVE_CONTRACTS, "at");
-        aux = contractList->begin;
-
-        while (aux != NULL)
-        {
-            fprintf(archive3, "%s\n", aux->contracts->company.cnpj);
-            fprintf(archive3, "%.2f\n", aux->contracts->power);
-            fprintf(archive3, "%s\n", aux->contracts->consumer.cpf);
-            fprintf(archive3, "%s\n", aux->contracts->date);
-            aux = aux->next;
-        }
-
-        fclose(archive3);
-        remove(BACKUP_ARCHIVE_CONTRACTS);
-    }
-    else 
-    {
-        FILE *archive1 = fopen(ARCHIVE_CONSUMERS, "at");
-        FILE *archive2 = fopen(ARCHIVE_COMPANIES, "at");
-        fclose(archive1);
-        fclose(archive2);
-        remove(BACKUP_ARCHIVE_CONSUMERS);
-        remove(BACKUP_ARCHIVE_COMPANIES);
     }
 }
 
