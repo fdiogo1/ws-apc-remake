@@ -7,8 +7,10 @@ int main(void)
 
     List *consumersList = createList(CONSUMERS);
     List *companyList = createList(COMPANIES);
+    List *contractsList = createList(CONTRACTS);
     loadFromArchive(consumersList, CONSUMERS);
     loadFromArchive(companyList, COMPANIES);
+    loadContracts(contractsList, consumersList, companyList);
 
     do
     {
@@ -16,6 +18,8 @@ int main(void)
         printList(consumersList, CONSUMERS);
         puts("--------------");
         printList(companyList, COMPANIES);
+        puts("--------------");
+        printList(contractsList, CONTRACTS);
         puts("--------------");
 
         // printMenu();
@@ -40,8 +44,9 @@ int main(void)
     } 
     while (option != 8);
 
-    updateArchive(consumersList, companyList);
+    updateArchive(consumersList, companyList, contractsList);
 
     destroyList(&consumersList);
     destroyList(&companyList);
+    destroyList(&contractsList);
 }

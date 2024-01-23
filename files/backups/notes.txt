@@ -1,0 +1,3 @@
+The backup files will only be available while the program is running.
+
+LAST TIME UPDATED: 01-22-2024T22:56GMT-3
